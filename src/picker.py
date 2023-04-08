@@ -6,8 +6,8 @@ Current supported matchers are:
 * rofi for Linux platforms
 * choose (https://github.com/chipsenkbeil/choose) on MacOS
 """
-import subprocess
 import platform
+import subprocess
 
 SYSTEM_NAME = platform.system()
 
