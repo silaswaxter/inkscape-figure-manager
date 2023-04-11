@@ -14,7 +14,7 @@ SYSTEM_NAME = platform.system()
 
 def get_picker_cmd(picker_args=None, fuzzy=True):
     """
-    Create the shell command that will be run to start the picker.
+    Determine and return the picker command to use
     """
 
     if SYSTEM_NAME == "Linux":
@@ -26,7 +26,7 @@ def get_picker_cmd(picker_args=None, fuzzy=True):
     elif SYSTEM_NAME == "Darwin":
         args = ["choose"]
     else:
-        raise ValueError("No supported picker for {}".format(SYSTEM_NAME))
+        raise ValueError(f"No supported picker for {SYSTEM_NAME}")
 
     if picker_args is not None:
         args += picker_args
@@ -36,23 +36,19 @@ def get_picker_cmd(picker_args=None, fuzzy=True):
 
 def pick(options, picker_args=None, fuzzy=True):
     optionstr = '\n'.join(option.replace('\n', ' ') for option in options)
-    cmd = get_picker_cmd(picker_args=picker_args, fuzzy=fuzzy)
-    result = subprocess.run(cmd, input=optionstr, stdout=subprocess.PIPE,
-                            universal_newlines=True)
+    result = subprocess.run(
+        get_picker_cmd(picker_args=picker_args, fuzzy=fuzzy),
+        input=optionstr,
+        stdout=subprocess.PIPE,
+        check=False,
+        universal_newlines=True
+    )
     returncode = result.returncode
-    stdout = result.stdout.strip()
+    selected = result.stdout.strip()
 
-    selected = stdout.strip()
     try:
         index = [opt.strip() for opt in options].index(selected)
     except ValueError:
-        index = -1
+        index = ValueError
 
-    if returncode == 0:
-        key = 0
-    elif returncode == 1:
-        key = -1
-    elif returncode > 9:
-        key = returncode - 9
-
-    return key, index, selected
+    return returncode, index

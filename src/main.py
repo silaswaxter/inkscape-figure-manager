@@ -316,7 +316,13 @@ def edit(path):
         # otherwise launch the picker for selection
         else:
             names = [f.stem for f in files]
-            _, index, selected = picker.pick(names)
+            returncode, index = picker.pick(names)
+            if returncode != 0:
+                print("Picker returned with non-zero exit status.")
+                return
+            if index is ValueError:
+                print("A value error occurred while choosing with the picker.")
+                return
             selected_file = files[index]
 
         open_inkscape(selected_file)
