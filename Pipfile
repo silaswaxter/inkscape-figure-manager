@@ -9,6 +9,7 @@ inotify = "*"
 pyperclip = "*"
 daemonize = "*"
 appdirs = "*"
+watchdog = "*"
 
 [dev-packages]
 pylint = "*"
