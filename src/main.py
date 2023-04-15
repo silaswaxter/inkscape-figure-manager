@@ -12,7 +12,7 @@ import click
 from appdirs import user_config_dir
 
 import picker
-from watcher import Watcher
+from watcher import EXPORT_EXTENSTION_NO_DOT, Watcher
 from watcher_daemon import WatcherDaemon
 
 APPLICATION_NAME = "inkscape-figure-manager"
@@ -92,39 +92,62 @@ def watch(git, watched_dir):
 
 @cli.command()
 @click.argument('alternate_text')
-@click.argument(
-    'figure_dir',
-    default=os.getcwd(),
-    type=click.Path(exists=False, file_okay=False, dir_okay=True)
-)
-def create(alternate_text, figure_dir):
+@click.option('-d', '--figure-dir',
+              default=os.getcwd(),
+              type=click.Path(exists=False, file_okay=False, dir_okay=True),
+              help="The figure's directory; creates if non-existant. "
+                   "Default is CWD."
+              )
+@click.option('--relative-from',
+              default=os.getcwd(),
+              type=click.Path(exists=True, file_okay=False, dir_okay=True),
+              help="The directory that the figure's path is relative to "
+                   "within the inclusion text. Default is CWD."
+              )
+def create(alternate_text, figure_dir, relative_from):
     """
-    Creates a figure with named using the snake-case form of the alternate
-    text.
+    Creates a figure with snake-cased alternate text.
 
-    First argument is the alternate text of the image
-    Second argument is the figure directory.
+    ALTERNATE_TEXT:     alternate text of the image
 
-    Errors: If a figure already exists with the provided name, the program will
-            not do anything except return with a non-zero exit status.
+    Errors:             On existing figure, exit with non-zero return code.
     """
-    alternate_text = alternate_text.strip()
-    file_name = alternate_text.replace(' ', '-').lower() + '.svg'
-    figure_dir = Path(figure_dir).absolute()
+    # Normalize input
+    name = alternate_text.strip().replace(' ', '-').lower()
+    figure_file_name = name + '.svg'
+    figure_file_name_exported = name + '.' + EXPORT_EXTENSTION_NO_DOT
+    figure_dir = Path(figure_dir).resolve()
     if not figure_dir.exists():
         figure_dir.mkdir()
-    file_path = figure_dir / file_name
+    relative_from = Path(relative_from).resolve()
 
-    # If a file with this name already exists, append a '2'.
-    if file_path.exists():
-        print(f"A file with the same name already exists at '{file_path}'")
+    # Resolve relative path
+    # figure_dir. In this case, get the relative path by walking up directories
+    if relative_from.is_relative_to(figure_dir):
+        up_dir_steps = Path('')  # will contain multiple '..'
+        while (relative_from / up_dir_steps).resolve() != figure_dir:
+            up_dir_steps = up_dir_steps / '..'
+        relative_path = up_dir_steps
+    else:
+        relative_path = figure_dir.relative_to(relative_from)
+        print(relative_path)
+
+    relative_figure = relative_path / figure_file_name
+    relative_figure_exported = relative_path / figure_file_name_exported
+    absolute_figure = (relative_from / relative_figure).absolute()
+
+    # Ensure figure does not exist
+    if relative_figure.exists():
+        print(f"A file with the same name already exists at "
+              f"'{relative_figure}'")
         sys.exit(ERROR_CODE_CREATED_FILE_ALREADY_EXISTS)
 
-    copy(str(TEMPLATE_FILE_PATH), str(file_path))
+    # Create and return inclusion text
+    copy(str(TEMPLATE_FILE_PATH), str(absolute_figure))
+    open_inkscape(absolute_figure)
     WatcherDaemon.ensure_watch(figure_dir)
-    open_inkscape(file_path)
-
-    print(markdown_include_image_text(alternate_text, file_path.stem))
+    print(markdown_include_image_text(alternate_text,
+                                      relative_figure_exported))
 
 
 @cli.command()

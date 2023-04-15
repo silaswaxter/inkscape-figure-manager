@@ -49,6 +49,7 @@ class WatcherDaemon(Daemon):
                     new_dir = Path(conn.recv())
                     if new_dir not in watched_dirs:
                         for watched_dir in watched_dirs.copy():
+                            # TODO: consider using PurePath.is_relative_to()
                             # check if new_dir will be watching existing dir
                             for parent in watched_dir.parents:
                                 if new_dir == parent:

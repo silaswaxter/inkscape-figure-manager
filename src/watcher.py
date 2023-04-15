@@ -19,6 +19,8 @@ from watchdog.observers import Observer as WatchDogObserver
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 log = logging.getLogger('inkscape-figures')
 
+EXPORT_EXTENSTION_NO_DOT = "png"
+
 
 class FigureFileSystemEventHandler(FileSystemEventHandler):
     def on_modified(self, event):
@@ -36,7 +38,7 @@ class FigureFileSystemEventHandler(FileSystemEventHandler):
             return
 
         log.info("figure at %s modified" % (event.src_path))
-        Watcher.export_figure(event.src_path, "png")
+        Watcher.export_figure(event.src_path, EXPORT_EXTENSTION_NO_DOT)
 
 
 class Watcher:
