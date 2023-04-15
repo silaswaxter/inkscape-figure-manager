@@ -12,7 +12,8 @@ import click
 from appdirs import user_config_dir
 
 import picker
-import file_system_watcher
+from watcher import Watcher
+from watcher_daemon import WatcherDaemon
 
 APPLICATION_NAME = "inkscape-figure-manager"
 # os-agnostic path to current user's configuration directory for this
@@ -23,6 +24,8 @@ TEMPLATE_FILE_PATH = APP_USER_CONFIG_DIR / 'template.svg'
 # error codes:
 ERROR_CODE_CREATED_FILE_ALREADY_EXISTS = 1
 ERROR_CODE_EDITED_FILE_PATH_DOES_NOT_EXIST = 2
+ERROR_CODE_GIT_REPO_DNE = 3
+ERROR_CODE_BAD_DIR_TO_WATCH = 4
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 log = logging.getLogger('inkscape-figures')
@@ -76,9 +79,15 @@ def watch(git, watched_dir):
     WATCHED_DIR: directory to watch
     """
     if git:
-        watched_dir = file_system_watcher.find_git_root(watched_dir)
-
-    file_system_watcher.watch(watched_dir)
+        watched_dir = Watcher.find_git_root(watched_dir)
+        if watched_dir is None:
+            print("WATCHED_DIR is not within a git repository")
+            sys.exit(ERROR_CODE_GIT_REPO_DNE)
+    else:
+        if not Path(watched_dir).is_dir():
+            print("WATCHED_DIR is not an existing directory")
+            sys.exit(ERROR_CODE_BAD_DIR_TO_WATCH)
+    WatcherDaemon.ensure_watch(watched_dir)
 
 
 @cli.command()
@@ -112,7 +121,7 @@ def create(alternate_text, figure_dir):
         sys.exit(ERROR_CODE_CREATED_FILE_ALREADY_EXISTS)
 
     copy(str(TEMPLATE_FILE_PATH), str(file_path))
-    # add_root(figure_dir)
+    WatcherDaemon.ensure_watch(figure_dir)
     open_inkscape(file_path)
 
     print(markdown_include_image_text(alternate_text, file_path.stem))
@@ -164,6 +173,7 @@ def edit(path):
                 return
             selected_file = files[index]
 
+    WatcherDaemon.ensure_watch(selected_file.parent)
     open_inkscape(selected_file)
 
 
@@ -184,6 +194,21 @@ def ensure_init():
              str(TEMPLATE_FILE_PATH))
 
 
+def ensure_watcher_daemon():
+    """
+    Ensures the watcher daemon (server) is running
+    """
+    daemon_dir = Path(f"/var/run/user/{os.getuid()}/inkscape-figure-managerd")
+    if not daemon_dir.exists():
+        daemon_dir.mkdir()
+    watcher_daemon = WatcherDaemon(
+        pidfile=f"{daemon_dir}/pid",
+        stdout=f"{daemon_dir}/stdout",
+        stderr=f"{daemon_dir}/stderr")
+    watcher_daemon.start()
+
+
 if __name__ == '__main__':
     ensure_init()
+    ensure_watcher_daemon()
     cli()

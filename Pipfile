@@ -10,6 +10,7 @@ pyperclip = "*"
 daemonize = "*"
 appdirs = "*"
 watchdog = "*"
+psutil = "*"
 
 [dev-packages]
 pylint = "*"
