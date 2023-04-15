@@ -1,16 +1,20 @@
-# Inkscape Figure Manager
+# About
 
-A script to manage Inkscape figures which provide a simple "api" to neovim
-allowing custom, faster figure management. Supported features include:
+Provide an "api" for managing Inkscape figures. Built for Neovim integration.
 
-- creating figures
-- editing existing figures
-  - using a picker (eg [rofi](https://github.com/davatorium/rofi)) to select a
-    figure when a directory with multiple figures is passed.
-- auto-export figure on  *.svg' save
+Create, edit, and watch figures. Auto-exports figures when saved. This applies
+to figures in directories specified with `create` (implicit), `edit`
+(implicit), and `watch` (explicit) for the current session. When the watcher
+background process (daemon) is stopped, the list of watched directories is lost;
+therefore, one should edit their figures using the manager to ensure figures are
+always being watched.
 
-A script I use to manage figures for my LaTeX documents.
-More information in this [blog post](https://castel.dev/post/lecture-notes-2/).
+This project was forked from the deceased, Gille Castel's, project. He wrote a
+[blog post](https://castel.dev/post/lecture-notes-2/) explaining his workflow which
+should be mostly applicable. The following changes have been made:
+
+- rework the watcher
+- use markdown instead of LaTex.
 
 ## Requirements
 
@@ -18,6 +22,7 @@ More information in this [blog post](https://castel.dev/post/lecture-notes-2/).
 - Supported OS:
   - Linux
   - Mac
+    - untested (supported at fork from Castel's project)
 - Picker:
   - [rofi](https://github.com/davatorium/rofi) for Linux
   - [choose](https://github.com/chipsenkbeil/choose) for MacOS
