@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import atexit
-import logging
 import os
 import sys
 import time

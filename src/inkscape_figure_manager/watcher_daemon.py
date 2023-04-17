@@ -2,8 +2,8 @@ import time
 from multiprocessing.connection import Client, Listener
 from pathlib import Path
 
-from daemon import Daemon
-from watcher import Watcher
+from inkscape_figure_manager.daemon import Daemon
+from inkscape_figure_manager.watcher import Watcher
 
 
 class WatcherDaemon(Daemon):

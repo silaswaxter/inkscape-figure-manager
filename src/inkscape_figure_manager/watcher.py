@@ -11,7 +11,6 @@ import os
 import pathlib
 import subprocess
 import sys
-import time
 
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer as WatchDogObserver

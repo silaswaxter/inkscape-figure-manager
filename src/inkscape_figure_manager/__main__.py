@@ -11,9 +11,9 @@ from shutil import copy
 import click
 from appdirs import user_config_dir
 
-import picker
-from watcher import EXPORT_EXTENSTION_NO_DOT, Watcher
-from watcher_daemon import WatcherDaemon
+from inkscape_figure_manager import picker
+from inkscape_figure_manager.watcher_daemon import WatcherDaemon
+from inkscape_figure_manager.watcher import EXPORT_EXTENSTION_NO_DOT, Watcher
 
 APPLICATION_NAME = "inkscape-figure-manager"
 # os-agnostic path to current user's configuration directory for this
@@ -65,6 +65,8 @@ def cli():
     """
     Wrapper function for the CLI from the click library.
     """
+    ensure_init()
+    ensure_watcher_daemon()
 
 
 @cli.command()
@@ -232,6 +234,4 @@ def ensure_watcher_daemon():
 
 
 if __name__ == '__main__':
-    ensure_init()
-    ensure_watcher_daemon()
     cli()

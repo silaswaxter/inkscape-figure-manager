@@ -1,0 +1,30 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = 'inkscape_figure_manager'
+version = '0.0.1'
+authors = [
+  { name="Silas Waxter" },
+  { name="Gille Castel" },
+]
+description = "An API for managing inkscape figures."
+readme = "README.md"
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+  "click",
+  "appdirs",
+  "watchdog",
+  "psutil",
+]
+
+[project.scripts]
+inkscape_figure_manager = "inkscape_figure_manager.__main__:cli"
+
+[project.urls]
+"Homepage" = "https://github.com/silaswaxter/inkscape-figure-manager"
+"Bug Tracker" = "https://github.com/silaswaxter/inkscape-figure-manager/issues"
