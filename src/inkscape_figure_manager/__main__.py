@@ -12,8 +12,8 @@ import click
 from appdirs import user_config_dir
 
 from inkscape_figure_manager import picker
-from inkscape_figure_manager.watcher_daemon import WatcherDaemon
 from inkscape_figure_manager.watcher import EXPORT_EXTENSTION_NO_DOT, Watcher
+from inkscape_figure_manager.watcher_daemon import WatcherDaemon
 
 APPLICATION_NAME = "inkscape-figure-manager"
 # os-agnostic path to current user's configuration directory for this
@@ -29,6 +29,11 @@ ERROR_CODE_BAD_DIR_TO_WATCH = 4
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 log = logging.getLogger('inkscape-figures')
+
+
+def eprint(*args, **kwargs):
+    """Error print to stderr"""
+    print(*args, file=sys.stderr, **kwargs)
 
 
 def snake_case(string):
@@ -83,11 +88,11 @@ def watch(git, watched_dir):
     if git:
         watched_dir = Watcher.find_git_root(watched_dir)
         if watched_dir is None:
-            print("WATCHED_DIR is not within a git repository")
+            eprint("WATCHED_DIR is not within a git repository")
             sys.exit(ERROR_CODE_GIT_REPO_DNE)
     else:
         if not Path(watched_dir).is_dir():
-            print("WATCHED_DIR is not an existing directory")
+            eprint("WATCHED_DIR is not an existing directory")
             sys.exit(ERROR_CODE_BAD_DIR_TO_WATCH)
     WatcherDaemon.ensure_watch(watched_dir)
 
@@ -140,8 +145,8 @@ def create(alternate_text, figure_dir, relative_from):
 
     # Ensure figure does not exist
     if relative_figure.exists():
-        print(f"A file with the same name already exists at "
-              f"'{relative_figure}'")
+        eprint(f"A file with the same name already exists at "
+               f"'{relative_figure}'")
         sys.exit(ERROR_CODE_CREATED_FILE_ALREADY_EXISTS)
 
     # Create and return inclusion text
@@ -170,7 +175,7 @@ def edit(path):
 
     # ensure path exists
     if not path.exists():
-        print(f"The path does not exsist; received '{path}'.")
+        eprint(f"The path does not exsist; received '{path}'.")
         sys.exit(ERROR_CODE_EDITED_FILE_PATH_DOES_NOT_EXIST)
 
     selected_file = None
