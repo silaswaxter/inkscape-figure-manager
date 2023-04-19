@@ -19,7 +19,6 @@ APPLICATION_NAME = "inkscape-figure-manager"
 # os-agnostic path to current user's configuration directory for this
 # application
 APP_USER_CONFIG_DIR = Path(user_config_dir(APPLICATION_NAME, False))
-ROOT_FILE_PATH = APP_USER_CONFIG_DIR / 'roots'
 TEMPLATE_FILE_PATH = APP_USER_CONFIG_DIR / 'template.svg'
 # error codes:
 ERROR_CODE_CREATED_FILE_ALREADY_EXISTS = 1
@@ -213,9 +212,6 @@ def ensure_init():
     """
     if not APP_USER_CONFIG_DIR.is_dir():
         APP_USER_CONFIG_DIR.mkdir()
-
-    if not ROOT_FILE_PATH.is_file():
-        ROOT_FILE_PATH.touch()
 
     # if template file does not exist, copy it from the template file in this
     # directory
