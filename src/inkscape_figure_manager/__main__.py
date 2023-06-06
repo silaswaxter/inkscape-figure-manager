@@ -136,7 +136,6 @@ def create(alternate_text, figure_dir, relative_from):
         relative_path = up_dir_steps
     else:
         relative_path = figure_dir.relative_to(relative_from)
-        print(relative_path)
 
     relative_figure = relative_path / figure_file_name
     relative_figure_exported = relative_path / figure_file_name_exported
