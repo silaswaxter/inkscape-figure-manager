@@ -12,6 +12,7 @@ psutil = "*"
 [dev-packages]
 pylint = "*"
 flit = "*"
+setuptools = "*"
 
 [requires]
 python_version = "3.10"
