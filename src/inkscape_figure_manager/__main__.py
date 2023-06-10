@@ -7,6 +7,7 @@ import sys
 import warnings
 from pathlib import Path
 from shutil import copy
+import re
 
 import click
 from appdirs import user_config_dir
@@ -22,7 +23,7 @@ APP_USER_CONFIG_DIR = Path(user_config_dir(APPLICATION_NAME, False))
 TEMPLATE_FILE_PATH = APP_USER_CONFIG_DIR / 'template.svg'
 # error codes:
 ERROR_CODE_CREATED_FILE_ALREADY_EXISTS = 1
-ERROR_CODE_EDITED_FILE_PATH_DOES_NOT_EXIST = 2
+ERROR_CODE_EDIT_UNHANDLED_FILETYPE = 2
 ERROR_CODE_GIT_REPO_DNE = 3
 ERROR_CODE_BAD_DIR_TO_WATCH = 4
 
@@ -158,29 +159,50 @@ def create(alternate_text, figure_dir, relative_from):
 @cli.command()
 @click.argument(
     'path',
-    default=os.getcwd(),
+    default="",
     type=click.Path(exists=True, file_okay=True, dir_okay=True),
 )
-def edit(path):
+@click.pass_context
+def edit(ctx, path):
     """
     Edits a figure.
 
-    PATH: The path to either a figure or a directory containing one or more
-    figures. When multiple figures are within the directory, a picker will
-    be used for selection. Default is the current working directory.
+    PATH: The path to a figure file, markdown file, or a directory.
+            Figure File:    Edit the figure passed.
+            Markdown File:  Edit a figure included in the markdown file
+                            (Use the picker if there is more than one)
+            Directory:      Edit a figure within the directory
+                            (use the picker if there is more than one)
     """
     path = Path(path).absolute()
 
-    # ensure path exists
-    if not path.exists():
-        eprint(f"The path does not exsist; received '{path}'.")
-        sys.exit(ERROR_CODE_EDITED_FILE_PATH_DOES_NOT_EXIST)
-
     selected_file = None
-    if path.is_file():
-        selected_file = path
+    while path.is_file():
+        if str(path).endswith('.svg'):
+            selected_file = path
+            break
+        if str(path).endswith('.md'):
+            # PARSE file for figures
+            markdown_file = open(str(path), "r")
+            markdown_content = markdown_file.read()
+            figures = re.findall("!\[.*?\]\((.*?)\.png\)", markdown_content)
+            for i in range(len(figures)):
+                figures[i] = figures[i] + ".svg"
 
-    elif path.is_dir():
+            returncode, index = picker.pick(figures)
+            if returncode != 0:
+                print("Picker returned with non-zero exit status.")
+                return
+            if index is ValueError:
+                print("A value error occurred while choosing with the picker.")
+                return
+            selected_file = str(path.parent) + "/" + figures[index]
+            break
+        eprint("Error: file is neither markdown nor figure.\n"
+            "Try 'python -m inkscape_figure_manager edit --help' for help.")
+        sys.exit(ERROR_CODE_EDIT_UNHANDLED_FILETYPE)
+
+    if path.is_dir():
         # Find svg files and sort them
         files = path.glob('*.svg')
         files = sorted(files, key=lambda f: f.stat().st_mtime, reverse=True)
@@ -201,7 +223,7 @@ def edit(path):
                 return
             selected_file = files[index]
 
-    WatcherDaemon.ensure_watch(selected_file.parent)
+    WatcherDaemon.ensure_watch(Path(selected_file).parent)
     open_inkscape(selected_file)
 
 
