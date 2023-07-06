@@ -1,5 +1,9 @@
 # About
 
+**This repository has been abandoned.** It was rewritten in lua in
+my [neovim plugin 
+repository](github.com/silaswaxter/inkscape-figure-manager.nvim).
+
 Provide an "api" for managing Inkscape figures. Built for Neovim integration.
 
 Create, edit, and watch figures. Auto-exports figures when saved. This applies
